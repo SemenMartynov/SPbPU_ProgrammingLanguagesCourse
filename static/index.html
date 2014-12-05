@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>Actor Chat</title>
+<script language="javascript" type="text/javascript">
+
+	function init()	{
+		document.chatform.addr.value = "ws://localhost:8765/"
+		document.chatform.input.value = "Text!"
+		document.chatform.disconnectButton.disabled = true;
+	}
+
+	function wsOpen(evt) {
+		showMessage("System: You are connected!\n");
+
+		document.chatform.connectButton.disabled = true;
+		document.chatform.disconnectButton.disabled = false;
+	}
+
+	function wsClose(evt) {
+		showMessage("System: You are disconnected!\n");
+
+		document.chatform.connectButton.disabled = false;
+		document.chatform.disconnectButton.disabled = true;
+	}
+
+	function wsMessage(evt) {
+		showMessage(">> " + evt.data + '\n');
+	}
+
+	function wsError(evt) {
+		showMessage('System error: ' + evt.data + '!\n');
+
+		websocket.close();
+
+		document.chatform.connectButton.disabled = false;
+		document.chatform.disconnectButton.disabled = true;
+	}
+
+	function showMessage(message) {
+		document.chatform.textfield.value += message
+		document.chatform.textfield.scrollTop = document.chatform.textfield.scrollHeight;
+	}
+
+	window.addEventListener("load", init, false);
+
+	function chatConnect() {
+		websocket = new WebSocket(document.chatform.addr.value);
+		websocket.onopen = function(evt) {
+			wsOpen(evt)
+		};
+		websocket.onclose = function(evt) {
+			wsClose(evt)
+		};
+		websocket.onmessage = function(evt) {
+			wsMessage(evt)
+		};
+		websocket.onerror = function(evt) {
+			wsError(evt)
+		};
+	}
+
+	function chatSend() {
+		message = document.chatform.input.value;
+
+		showMessage("<< " + message + '\n'); 
+		websocket.send(message);
+	}
+
+	function chatDisconnect() {
+		websocket.close();
+	}
+
+</script>
+
+<form name="chatform">
+	<p>
+		<input type="text" name="addr" size="108"></textarea>
+		<input type="button" name=disconnectButton value="Disconnect" onClick="chatDisconnect();">
+		<input type="button" name=connectButton value="Connect" onClick="chatConnect();">		
+	</p>	
+	<p>
+		<textarea name="textfield" rows="20" cols="150"></textarea>
+	</p>
+	<p>
+		<textarea name="input" cols="142"></textarea>
+		<input type="button" name=sendButton value="Send" onClick="chatSend();">
+	</p>
+	
+</form>
+
+</html>
